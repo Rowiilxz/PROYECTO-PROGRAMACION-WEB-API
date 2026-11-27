@@ -1,0 +1,138 @@
+@baseUrl = http://localhost:3000
+@tokenEstudiante = {{loginEstudiante.response.body.$.token}}
+@tokenEncargado = {{loginEncargado.response.body.$.token}}
+@equipoId = 1
+@prestamoId = 1
+
+
+### 1. Login estudiante
+# @name loginEstudiante
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "estudiante@demo.com",
+  "password": "Demo1234"
+}
+
+### 2. Login encargado
+# @name loginEncargado
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "encargado@demo.com",
+  "password": "Demo1234"
+}
+
+### 3. Estudiante solicita un equipo (201, estado pendiente)
+POST {{baseUrl}}/prestamos
+Authorization: Bearer {{tokenEstudiante}}
+Content-Type: application/json
+
+{
+  "equipoId": {{equipoId}},
+  "fechaInicio": "2026-12-01T09:00:00.000Z",
+  "fechaDevolucion": "2026-12-01T17:00:00.000Z"
+}
+
+### 4. Estudiante ve SOLO sus préstamos (200)
+GET {{baseUrl}}/prestamos
+Authorization: Bearer {{tokenEstudiante}}
+
+### 5. Encargado ve TODOS los préstamos (200)
+GET {{baseUrl}}/prestamos
+Authorization: Bearer {{tokenEncargado}}
+
+### 6. Ver un préstamo (200)
+GET {{baseUrl}}/prestamos/{{prestamoId}}
+Authorization: Bearer {{tokenEncargado}}
+
+### 7. Encargado aprueba (200, el equipo pasa a prestado)
+PUT {{baseUrl}}/prestamos/{{prestamoId}}/estado
+Authorization: Bearer {{tokenEncargado}}
+Content-Type: application/json
+
+{
+  "estado": "activo"
+}
+
+### 8. Encargado marca la devolución (200, el equipo vuelve a disponible)
+PUT {{baseUrl}}/prestamos/{{prestamoId}}/estado
+Authorization: Bearer {{tokenEncargado}}
+Content-Type: application/json
+
+{
+  "estado": "devuelto"
+}
+
+### 9. Eliminar préstamo (200)
+DELETE {{baseUrl}}/prestamos/{{prestamoId}}
+Authorization: Bearer {{tokenEncargado}}
+
+### 10. Encargado rechaza (200) - antes crea un préstamo nuevo con la petición 3 y cambia @prestamoId
+PUT {{baseUrl}}/prestamos/{{prestamoId}}/estado
+Authorization: Bearer {{tokenEncargado}}
+Content-Type: application/json
+
+{
+  "estado": "rechazado"
+}
+
+### 11. Estudiante intenta aprobar (403)
+PUT {{baseUrl}}/prestamos/{{prestamoId}}/estado
+Authorization: Bearer {{tokenEstudiante}}
+Content-Type: application/json
+
+{
+  "estado": "activo"
+}
+
+### 12. Encargado intenta solicitar un préstamo (403)
+POST {{baseUrl}}/prestamos
+Authorization: Bearer {{tokenEncargado}}
+Content-Type: application/json
+
+{
+  "equipoId": {{equipoId}},
+  "fechaInicio": "2026-12-01T09:00:00.000Z"
+}
+
+### 13. Estudiante intenta eliminar (403)
+DELETE {{baseUrl}}/prestamos/{{prestamoId}}
+Authorization: Bearer {{tokenEstudiante}}
+
+### 14. Sin token (401)
+GET {{baseUrl}}/prestamos
+
+### 15. Solicitar sin equipo (400)
+POST {{baseUrl}}/prestamos
+Authorization: Bearer {{tokenEstudiante}}
+Content-Type: application/json
+
+{
+  "fechaInicio": "2026-12-01T09:00:00.000Z"
+}
+
+### 16. Equipo que no existe (404)
+POST {{baseUrl}}/prestamos
+Authorization: Bearer {{tokenEstudiante}}
+Content-Type: application/json
+
+{
+  "equipoId": 9999,
+  "fechaInicio": "2026-12-01T09:00:00.000Z"
+}
+
+### 17. Estado inválido (400)
+PUT {{baseUrl}}/prestamos/{{prestamoId}}/estado
+Authorization: Bearer {{tokenEncargado}}
+Content-Type: application/json
+
+{
+  "estado": "inventado"
+}
+
+### 18. Préstamo que no existe (404)
+GET {{baseUrl}}/prestamos/9999
+Authorization: Bearer {{tokenEncargado}}
