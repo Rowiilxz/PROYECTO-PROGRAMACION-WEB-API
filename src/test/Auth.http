@@ -1,0 +1,145 @@
+@baseUrl = http://localhost:3000
+@tokenProfesor = {{loginProfesor.response.body.$.token}}
+
+
+### 1. Registrar estudiante (201, estado activo)
+POST {{baseUrl}}/auth/registro
+Content-Type: application/json
+
+{
+  "nombre": "Estudiante Demo",
+  "correo": "estudiante@demo.com",
+  "password": "Demo1234",
+  "rol": "estudiante"
+}
+
+### 2. Registrar profesor (201, estado activo)
+POST {{baseUrl}}/auth/registro
+Content-Type: application/json
+
+{
+  "nombre": "Profesor Demo",
+  "correo": "profesor@demo.com",
+  "password": "Demo1234",
+  "rol": "profesor"
+}
+
+### 3. Registrar encargado (201, estado pendiente)
+POST {{baseUrl}}/auth/registro
+Content-Type: application/json
+
+{
+  "nombre": "Encargado Demo",
+  "correo": "encargado@demo.com",
+  "password": "Demo1234",
+  "rol": "encargado"
+}
+
+### 4. Login estudiante (200 + token)
+# @name loginEstudiante
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "estudiante@demo.com",
+  "password": "Demo1234"
+}
+
+### 5. Login profesor (200 + token)
+# @name loginProfesor
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "profesor@demo.com",
+  "password": "Demo1234"
+}
+
+### 6. Login encargado (403 si está pendiente, 200 si está activo)
+# @name loginEncargado
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "encargado@demo.com",
+  "password": "Demo1234"
+}
+
+### 7. Ver mi perfil (200)
+GET {{baseUrl}}/auth/perfil
+Authorization: Bearer {{tokenProfesor}}
+
+### 8. Editar mi perfil (200)
+PUT {{baseUrl}}/auth/perfil
+Authorization: Bearer {{tokenProfesor}}
+Content-Type: application/json
+
+{
+  "nombre": "Profesor Demo Editado"
+}
+
+### 9. Cambiar contraseña (200)
+PUT {{baseUrl}}/auth/password
+Authorization: Bearer {{tokenProfesor}}
+Content-Type: application/json
+
+{
+  "actual": "Demo1234",
+  "nueva": "Nueva1234"
+}
+
+### 10. Volver a la contraseña original (200)
+PUT {{baseUrl}}/auth/password
+Authorization: Bearer {{tokenProfesor}}
+Content-Type: application/json
+
+{
+  "actual": "Nueva1234",
+  "nueva": "Demo1234"
+}
+
+### 11. Correo repetido (409)
+POST {{baseUrl}}/auth/registro
+Content-Type: application/json
+
+{
+  "nombre": "Profesor Repetido",
+  "correo": "profesor@demo.com",
+  "password": "Demo1234",
+  "rol": "profesor"
+}
+
+### 12. Rol inválido (400)
+POST {{baseUrl}}/auth/registro
+Content-Type: application/json
+
+{
+  "nombre": "Alguien",
+  "correo": "alguien@demo.com",
+  "password": "Demo1234",
+  "rol": "administrador"
+}
+
+### 13. Datos incompletos (400)
+POST {{baseUrl}}/auth/registro
+Content-Type: application/json
+
+{
+  "nombre": "Sin correo"
+}
+
+### 14. Contraseña incorrecta (401)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "profesor@demo.com",
+  "password": "incorrecta"
+}
+
+### 15. Perfil sin token (401)
+GET {{baseUrl}}/auth/perfil
+
+### 16. Perfil con token falso (401)
+GET {{baseUrl}}/auth/perfil
+Authorization: Bearer token.falso.123
