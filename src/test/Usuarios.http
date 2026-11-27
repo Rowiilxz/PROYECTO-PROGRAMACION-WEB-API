@@ -1,0 +1,80 @@
+@baseUrl = http://localhost:3000
+@tokenEncargado = {{loginEncargado.response.body.$.token}}
+@tokenProfesor = {{loginProfesor.response.body.$.token}}
+@usuarioId = 4
+
+
+### 1. Login encargado
+# @name loginEncargado
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "encargado@demo.com",
+  "password": "Demo1234"
+}
+
+### 2. Login profesor
+# @name loginProfesor
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "profesor@demo.com",
+  "password": "Demo1234"
+}
+
+### 3. Registrar un segundo encargado (queda pendiente)
+POST {{baseUrl}}/auth/registro
+Content-Type: application/json
+
+{
+  "nombre": "Encargado Nuevo",
+  "correo": "encargado2@demo.com",
+  "password": "Demo1234",
+  "rol": "encargado"
+}
+
+### 4. Listar usuarios (200, sin contraseñas)
+GET {{baseUrl}}/usuarios
+Authorization: Bearer {{tokenEncargado}}
+
+### 5. Aprobar al encargado pendiente (200, pasa a activo)
+PUT {{baseUrl}}/usuarios/{{usuarioId}}/aprobar
+Authorization: Bearer {{tokenEncargado}}
+
+### 6. Comprobar que el nuevo encargado ya puede entrar (200 + token)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "encargado2@demo.com",
+  "password": "Demo1234"
+}
+
+### 7. Eliminar un usuario (200) - cuidado, borra al de @usuarioId
+DELETE {{baseUrl}}/usuarios/{{usuarioId}}
+Authorization: Bearer {{tokenEncargado}}
+
+### 8. Profesor intenta listar usuarios (403)
+GET {{baseUrl}}/usuarios
+Authorization: Bearer {{tokenProfesor}}
+
+### 9. Profesor intenta aprobar (403)
+PUT {{baseUrl}}/usuarios/{{usuarioId}}/aprobar
+Authorization: Bearer {{tokenProfesor}}
+
+### 10. Profesor intenta eliminar (403)
+DELETE {{baseUrl}}/usuarios/{{usuarioId}}
+Authorization: Bearer {{tokenProfesor}}
+
+### 11. Sin token (401)
+GET {{baseUrl}}/usuarios
+
+### 12. Aprobar un usuario que no existe (404)
+PUT {{baseUrl}}/usuarios/9999/aprobar
+Authorization: Bearer {{tokenEncargado}}
+
+### 13. Eliminar un usuario que no existe (404)
+DELETE {{baseUrl}}/usuarios/9999
+Authorization: Bearer {{tokenEncargado}}
