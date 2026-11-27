@@ -1,0 +1,122 @@
+@baseUrl = http://localhost:3000
+@tokenEncargado = {{loginEncargado.response.body.$.token}}
+@tokenProfesor = {{loginProfesor.response.body.$.token}}
+@equipoId = 1
+
+
+### 1. Login encargado
+# @name loginEncargado
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "encargado@demo.com",
+  "password": "Demo1234"
+}
+
+### 2. Login profesor
+# @name loginProfesor
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "correo": "profesor@demo.com",
+  "password": "Demo1234"
+}
+
+### 3. Crear equipo (200)
+POST {{baseUrl}}/equipos
+Authorization: Bearer {{tokenEncargado}}
+Content-Type: application/json
+
+{
+  "nombre": "Laptop Dell",
+  "codigo": "LAP-001",
+  "categoria": "Laptops",
+  "descripcion": "Laptop Dell Latitude 14 pulgadas"
+}
+
+### 4. Crear otro equipo (200)
+POST {{baseUrl}}/equipos
+Authorization: Bearer {{tokenEncargado}}
+Content-Type: application/json
+
+{
+  "nombre": "Proyector Epson",
+  "codigo": "PRO-001",
+  "categoria": "Proyectores"
+}
+
+### 5. Listar equipos (200)
+GET {{baseUrl}}/equipos
+Authorization: Bearer {{tokenEncargado}}
+
+### 6. Ver un equipo (200)
+GET {{baseUrl}}/equipos/{{equipoId}}
+Authorization: Bearer {{tokenEncargado}}
+
+### 7. Editar equipo (200)
+PUT {{baseUrl}}/equipos/{{equipoId}}
+Authorization: Bearer {{tokenEncargado}}
+Content-Type: application/json
+
+{
+  "estado": "mantenimiento"
+}
+
+### 8. Devolver el equipo a disponible (200)
+PUT {{baseUrl}}/equipos/{{equipoId}}
+Authorization: Bearer {{tokenEncargado}}
+Content-Type: application/json
+
+{
+  "estado": "disponible"
+}
+
+### 9. Eliminar equipo (200) - cuidado, borra el equipo de @equipoId
+DELETE {{baseUrl}}/equipos/{{equipoId}}
+Authorization: Bearer {{tokenEncargado}}
+
+### 10. Profesor lista equipos (200)
+GET {{baseUrl}}/equipos
+Authorization: Bearer {{tokenProfesor}}
+
+### 11. Profesor intenta crear (403)
+POST {{baseUrl}}/equipos
+Authorization: Bearer {{tokenProfesor}}
+Content-Type: application/json
+
+{
+  "nombre": "Equipo prohibido",
+  "codigo": "XXX-001"
+}
+
+### 12. Profesor intenta editar (403)
+PUT {{baseUrl}}/equipos/{{equipoId}}
+Authorization: Bearer {{tokenProfesor}}
+Content-Type: application/json
+
+{
+  "estado": "mantenimiento"
+}
+
+### 13. Profesor intenta eliminar (403)
+DELETE {{baseUrl}}/equipos/{{equipoId}}
+Authorization: Bearer {{tokenProfesor}}
+
+### 14. Listar sin token (401)
+GET {{baseUrl}}/equipos
+
+### 15. Equipo que no existe (404)
+GET {{baseUrl}}/equipos/9999
+Authorization: Bearer {{tokenEncargado}}
+
+### 16. Código repetido (400)
+POST {{baseUrl}}/equipos
+Authorization: Bearer {{tokenEncargado}}
+Content-Type: application/json
+
+{
+  "nombre": "Laptop repetida",
+  "codigo": "PRO-001"
+}
