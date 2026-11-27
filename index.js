@@ -1,16 +1,20 @@
-require('dotenv').config()
-const express = require('express')
+import app from './app.js'
+import sequelize from './src/config/database.js'
+import './src/models/relaciones.js'
 
-const app = express()
-app.use(express.json())
+async function main() {
+  try {
+    await sequelize.sync({ alter: true })
+    console.log('Modelos registrados:', Object.keys(sequelize.models))
+    console.log('Base de datos sincronizada!')
 
-app.get('/', (req, res) => res.json({ ok: true }))
-
-const PORT = process.env.PORT || 3000
-
-// Solo abre el puerto al correr en tu PC; en Vercel se importa la app
-if (require.main === module) {
-  app.listen(PORT, () => console.log(`API escuchando en el puerto ${PORT}`))
+    const PORT = process.env.PORT || 3000
+    app.listen(PORT, () => {
+      console.log('Aplicación ejecutándose en el puerto ' + PORT)
+    })
+  } catch (error) {
+    console.log(error)
+  }
 }
 
-module.exports = app
+main()
